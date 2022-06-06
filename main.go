@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
+	"strings"
 )
 
 type hhresponse struct {
@@ -107,6 +109,28 @@ type hhresponse_full struct {
 	Arguments interface{} `json:"arguments"`
 }
 
+type Areas []struct {
+	Name     string      `json:"name"`
+	ID       string      `json:"id"`
+	ParentID interface{} `json:"parent_id"`
+	Areas    []struct {
+		Name     string        `json:"name"`
+		ID       string        `json:"id"`
+		ParentID string        `json:"parent_id"`
+		Areas    []interface{} `json:"areas"`
+	} `json:"areas"`
+}
+
+type Areas2 []struct {
+	Name     string      `json:"name"`
+	ID       string      `json:"id"`
+	ParentID interface{} `json:"parent_id"`
+	Areas2   Areas2      `json:"areas"`
+}
+
+//var gDictHhareas Areas
+var gDictHhareas Areas2
+
 func hh(res http.ResponseWriter, req *http.Request) {
 	fmt.Fprint(res, "Hello from Go")
 }
@@ -149,7 +173,7 @@ func hh2(res http.ResponseWriter, req *http.Request) {
 }
 
 func hh3(res http.ResponseWriter, req *http.Request) {
-	fmt.Println(0)
+	fmt.Println(0, req.URL)
 	//Build The URL string
 	URL := "https://api.hh.ru/vacancies?text=Golang&area=66"
 	fmt.Println(1)
@@ -174,10 +198,57 @@ func hh3(res http.ResponseWriter, req *http.Request) {
 	fmt.Println(4)
 }
 
+func hh4(res http.ResponseWriter, req *http.Request) {
+	reqUrlQuery := strings.Split(req.URL.RawQuery, "&")
+	reqUrlQuery2, _ := url.ParseQuery(req.URL.RawQuery)
+	fmt.Fprint(res, "reqUrlQuery:", reqUrlQuery, "reqUrlQuery2:", reqUrlQuery2)
+}
+
+func getHhAreas() {
+	//Build The URL string
+	URL := "https://api.hh.ru/areas"
+	resp, err := http.Get(URL)
+	if err != nil {
+		log.Fatal("ooopsss an error occurred, please try again")
+	}
+	defer resp.Body.Close()
+	//Decode the data
+	if err := json.NewDecoder(resp.Body).Decode(&gDictHhareas); err != nil {
+		log.Fatal("ooopsss! an error occurred, please try again")
+	}
+}
+
+func findNode(n Areas2, s string) string {
+	for _, value := range n {
+
+		if value.Name == s {
+			return value.ID
+		} else {
+			var nChild Areas2
+			nChild = value.Areas2
+			result := findNode(nChild, s)
+			if result != "" {
+				return result
+			}
+		}
+
+	}
+	return ""
+}
+
 func main() {
+
+	getHhAreas()
+	var res string
+	res = findNode(gDictHhareas, "Москва")
+	res = findNode(gDictHhareas, "Воронеж")
+	res = findNode(gDictHhareas, "Нижний Новгород")
+	fmt.Println(res)
+
 	http.HandleFunc("/", hh)
 	http.HandleFunc("/hh", hh1)
 	http.HandleFunc("/hh2", hh2)
 	http.HandleFunc("/hh3", hh3)
+	http.HandleFunc("/hh4", hh4)
 	http.ListenAndServe("localhost:4000", nil)
 }
