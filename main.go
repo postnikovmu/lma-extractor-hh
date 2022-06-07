@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -128,6 +129,97 @@ type Areas2 []struct {
 	Areas2   Areas2      `json:"areas"`
 }
 
+type pages struct {
+	Items []struct {
+		ID                     string      `json:"id"`
+		Premium                bool        `json:"premium"`
+		Name                   string      `json:"name"`
+		Department             interface{} `json:"department"`
+		HasTest                bool        `json:"has_test"`
+		ResponseLetterRequired bool        `json:"response_letter_required"`
+		Area                   struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"area"`
+		Salary interface{} `json:"salary"`
+		Type   struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+		} `json:"type"`
+		Address struct {
+			City        string      `json:"city"`
+			Street      string      `json:"street"`
+			Building    string      `json:"building"`
+			Description interface{} `json:"description"`
+			Lat         float64     `json:"lat"`
+			Lng         float64     `json:"lng"`
+			Raw         string      `json:"raw"`
+			Metro       struct {
+				StationName string  `json:"station_name"`
+				LineName    string  `json:"line_name"`
+				StationID   string  `json:"station_id"`
+				LineID      string  `json:"line_id"`
+				Lat         float64 `json:"lat"`
+				Lng         float64 `json:"lng"`
+			} `json:"metro"`
+			MetroStations []struct {
+				StationName string  `json:"station_name"`
+				LineName    string  `json:"line_name"`
+				StationID   string  `json:"station_id"`
+				LineID      string  `json:"line_id"`
+				Lat         float64 `json:"lat"`
+				Lng         float64 `json:"lng"`
+			} `json:"metro_stations"`
+			ID string `json:"id"`
+		} `json:"address"`
+		ResponseURL       interface{}   `json:"response_url"`
+		SortPointDistance interface{}   `json:"sort_point_distance"`
+		PublishedAt       string        `json:"published_at"`
+		CreatedAt         string        `json:"created_at"`
+		Archived          bool          `json:"archived"`
+		ApplyAlternateURL string        `json:"apply_alternate_url"`
+		InsiderInterview  interface{}   `json:"insider_interview"`
+		URL               string        `json:"url"`
+		AdvResponseURL    string        `json:"adv_response_url"`
+		AlternateURL      string        `json:"alternate_url"`
+		Relations         []interface{} `json:"relations"`
+		Employer          struct {
+			ID           string `json:"id"`
+			Name         string `json:"name"`
+			URL          string `json:"url"`
+			AlternateURL string `json:"alternate_url"`
+			LogoUrls     struct {
+				Num90    string `json:"90"`
+				Num240   string `json:"240"`
+				Original string `json:"original"`
+			} `json:"logo_urls"`
+			VacanciesURL string `json:"vacancies_url"`
+			Trusted      bool   `json:"trusted"`
+		} `json:"employer"`
+		Snippet struct {
+			Requirement    string `json:"requirement"`
+			Responsibility string `json:"responsibility"`
+		} `json:"snippet"`
+		Contacts interface{} `json:"contacts"`
+		Schedule struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+		} `json:"schedule"`
+		WorkingDays          []interface{} `json:"working_days"`
+		WorkingTimeIntervals []interface{} `json:"working_time_intervals"`
+		WorkingTimeModes     []interface{} `json:"working_time_modes"`
+		AcceptTemporary      bool          `json:"accept_temporary"`
+	} `json:"items"`
+	Found        int         `json:"found"`
+	Pages        int         `json:"pages"`
+	PerPage      int         `json:"per_page"`
+	Page         int         `json:"page"`
+	Clusters     interface{} `json:"clusters"`
+	Arguments    interface{} `json:"arguments"`
+	AlternateURL string      `json:"alternate_url"`
+}
+
 //var gDictHhareas Areas
 var gDictHhareas Areas2
 
@@ -199,9 +291,48 @@ func hh3(res http.ResponseWriter, req *http.Request) {
 }
 
 func hh4(res http.ResponseWriter, req *http.Request) {
-	reqUrlQuery := strings.Split(req.URL.RawQuery, "&")
-	reqUrlQuery2, _ := url.ParseQuery(req.URL.RawQuery)
-	fmt.Fprint(res, "reqUrlQuery:", reqUrlQuery, "reqUrlQuery2:", reqUrlQuery2)
+	//reqUrlQuery := strings.Split(req.URL.RawQuery, "&")
+	reqUrlQuery, _ := url.ParseQuery(req.URL.RawQuery)
+
+	var lvText = reqUrlQuery["text"][0]          //variable with the text of search
+	var lvAreaText = reqUrlQuery["area"][0]      //variable with the area of search as text
+	lvArea := findNode(gDictHhareas, lvAreaText) //variable with the area ID from api
+
+	const lcPerPage = 100
+	lvPageNumber := 0
+	for i := 0; i < 20; i++ {
+		lvPageNumber = i
+		lvPagesFromAPI := getPageOfVacancies(lcPerPage, lvPageNumber, lvText, lvArea)
+		if lvPagesFromAPI <= (i + 1) {
+			break
+		}
+	}
+	fmt.Fprint(res, "text:", lvText, "areaId:", lvAreaText, "area", lvArea)
+}
+
+func getPageOfVacancies(ivPerPage int, ivPageNumber int, ivText string, ivArea string) int {
+	lvPageNumberStr := strconv.Itoa(ivPageNumber)
+	lvPerPage := strconv.Itoa(ivPerPage)
+	//str := strings.Join(strings.Split(text, " "),"")
+	lvText20 := strings.Join(strings.Split(ivText, " "), "%20")
+	//Build The URL string
+	URL := "https://api.hh.ru/vacancies?" + "text=" + lvText20 + "&" + "area=" + ivArea + "&" + "per_page=" + lvPerPage + "&" + "page=" + lvPageNumberStr
+	//URL := "https://api.hh.ru/vacancies?" + "text=" + lvText20 + "&" + "area=" + ivArea //+ "&" + "per_page=" + lvPerPage + "&" + "page=" + lvPageNumberStr
+	//We make HTTP request using the Get function
+	resp, err := http.Get(URL)
+	if err != nil {
+		log.Fatal("ooopsss an error occurred, please try again")
+	}
+
+	//Create a variable of the same type as our model
+	var lsPage pages
+	//Decode the data
+	if err := json.NewDecoder(resp.Body).Decode(&lsPage); err != nil {
+		log.Fatal("ooopsss! an error occurred, please try again")
+	}
+
+	fmt.Println(lsPage.Pages, lvPageNumberStr, lvPerPage)
+	return lsPage.Pages
 }
 
 func getHhAreas() {
@@ -240,8 +371,8 @@ func main() {
 
 	getHhAreas()
 	var res string
-	res = findNode(gDictHhareas, "Москва")
-	res = findNode(gDictHhareas, "Воронеж")
+	//res = findNode(gDictHhareas, "Москва")
+	//res = findNode(gDictHhareas, "Воронеж")
 	res = findNode(gDictHhareas, "Нижний Новгород")
 	fmt.Println(res)
 
@@ -250,5 +381,5 @@ func main() {
 	http.HandleFunc("/hh2", hh2)
 	http.HandleFunc("/hh3", hh3)
 	http.HandleFunc("/hh4", hh4)
-	http.ListenAndServe("localhost:4000", nil)
+	http.ListenAndServe("localhost:8080", nil)
 }
