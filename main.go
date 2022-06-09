@@ -223,6 +223,13 @@ type pages struct {
 //var gDictHhareas Areas
 var gDictHhareas Areas2
 
+type vacancie struct {
+	URL  string `json:"strUrl"`
+	Name string `json:"strJobTitle"`
+}
+
+type vacancies []vacancie
+
 func hh(res http.ResponseWriter, req *http.Request) {
 	fmt.Fprint(res, "Hello from Go")
 }
@@ -298,26 +305,30 @@ func hh4(res http.ResponseWriter, req *http.Request) {
 	var lvAreaText = reqUrlQuery["area"][0]      //variable with the area of search as text
 	lvArea := findNode(gDictHhareas, lvAreaText) //variable with the area ID from api
 
+	var ltReturnedVac []vacancie
+	//ltReturnedVac = make([]vacancie, 0)
+
 	const lcPerPage = 100
 	lvPageNumber := 0
 	for i := 0; i < 20; i++ {
 		lvPageNumber = i
-		lvPagesFromAPI := getPageOfVacancies(lcPerPage, lvPageNumber, lvText, lvArea)
+		lvPagesFromAPI := getPageOfVacancies(lcPerPage, lvPageNumber, lvText, lvArea, &ltReturnedVac)
 		if lvPagesFromAPI <= (i + 1) {
 			break
 		}
 	}
-	fmt.Fprint(res, "text:", lvText, "areaId:", lvAreaText, "area", lvArea)
+	j, _ := json.Marshal(ltReturnedVac)
+	fmt.Fprint(res, string(j))
 }
 
-func getPageOfVacancies(ivPerPage int, ivPageNumber int, ivText string, ivArea string) int {
+func getPageOfVacancies(ivPerPage int, ivPageNumber int, ivText string, ivArea string, ctReturnedVac *[]vacancie) int {
 	lvPageNumberStr := strconv.Itoa(ivPageNumber)
 	lvPerPage := strconv.Itoa(ivPerPage)
-	//str := strings.Join(strings.Split(text, " "),"")
+
 	lvText20 := strings.Join(strings.Split(ivText, " "), "%20")
 	//Build The URL string
 	URL := "https://api.hh.ru/vacancies?" + "text=" + lvText20 + "&" + "area=" + ivArea + "&" + "per_page=" + lvPerPage + "&" + "page=" + lvPageNumberStr
-	//URL := "https://api.hh.ru/vacancies?" + "text=" + lvText20 + "&" + "area=" + ivArea //+ "&" + "per_page=" + lvPerPage + "&" + "page=" + lvPageNumberStr
+
 	//We make HTTP request using the Get function
 	resp, err := http.Get(URL)
 	if err != nil {
@@ -329,6 +340,13 @@ func getPageOfVacancies(ivPerPage int, ivPageNumber int, ivText string, ivArea s
 	//Decode the data
 	if err := json.NewDecoder(resp.Body).Decode(&lsPage); err != nil {
 		log.Fatal("ooopsss! an error occurred, please try again")
+	}
+
+	for _, value := range lsPage.Items {
+		var lsVac = vacancie{}
+		lsVac.Name = value.Name
+		lsVac.URL = value.URL
+		*ctReturnedVac = append(*ctReturnedVac, lsVac)
 	}
 
 	fmt.Println(lsPage.Pages, lvPageNumberStr, lvPerPage)
@@ -370,11 +388,6 @@ func findNode(n Areas2, s string) string {
 func main() {
 
 	getHhAreas()
-	var res string
-	//res = findNode(gDictHhareas, "Москва")
-	//res = findNode(gDictHhareas, "Воронеж")
-	res = findNode(gDictHhareas, "Нижний Новгород")
-	fmt.Println(res)
 
 	http.HandleFunc("/", hh)
 	http.HandleFunc("/hh", hh1)
