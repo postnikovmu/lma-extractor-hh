@@ -223,12 +223,106 @@ type pages struct {
 //var gDictHhareas Areas
 var gDictHhareas Areas2
 
-type vacancie struct {
-	URL  string `json:"strUrl"`
-	Name string `json:"strJobTitle"`
+type hhVac struct {
+	ID          string `json:"id"`
+	Premium     bool   `json:"premium"`
+	BillingType struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	} `json:"billing_type"`
+	Relations              []interface{} `json:"relations"`
+	Name                   string        `json:"name"`
+	InsiderInterview       interface{}   `json:"insider_interview"`
+	ResponseLetterRequired bool          `json:"response_letter_required"`
+	Area                   struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+		URL  string `json:"url"`
+	} `json:"area"`
+	Salary interface{} `json:"salary"`
+	Type   struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	} `json:"type"`
+	Address       interface{} `json:"address"`
+	AllowMessages bool        `json:"allow_messages"`
+	Experience    struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	} `json:"experience"`
+	Schedule struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	} `json:"schedule"`
+	Employment struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	} `json:"employment"`
+	Department                 interface{} `json:"department"`
+	Contacts                   interface{} `json:"contacts"`
+	Description                string      `json:"description"`
+	BrandedDescription         interface{} `json:"branded_description"`
+	VacancyConstructorTemplate interface{} `json:"vacancy_constructor_template"`
+	KeySkills                  []struct {
+		Name string `json:"name"`
+	} `json:"key_skills"`
+	AcceptHandicapped bool        `json:"accept_handicapped"`
+	AcceptKids        bool        `json:"accept_kids"`
+	Archived          bool        `json:"archived"`
+	ResponseURL       interface{} `json:"response_url"`
+	Specializations   []struct {
+		ID           string `json:"id"`
+		Name         string `json:"name"`
+		ProfareaID   string `json:"profarea_id"`
+		ProfareaName string `json:"profarea_name"`
+	} `json:"specializations"`
+	ProfessionalRoles []struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	} `json:"professional_roles"`
+	Code                    interface{}   `json:"code"`
+	Hidden                  bool          `json:"hidden"`
+	QuickResponsesAllowed   bool          `json:"quick_responses_allowed"`
+	DriverLicenseTypes      []interface{} `json:"driver_license_types"`
+	AcceptIncompleteResumes bool          `json:"accept_incomplete_resumes"`
+	Employer                struct {
+		ID           string `json:"id"`
+		Name         string `json:"name"`
+		URL          string `json:"url"`
+		AlternateURL string `json:"alternate_url"`
+		LogoUrls     struct {
+			Num90    string `json:"90"`
+			Num240   string `json:"240"`
+			Original string `json:"original"`
+		} `json:"logo_urls"`
+		VacanciesURL string `json:"vacancies_url"`
+		Trusted      bool   `json:"trusted"`
+	} `json:"employer"`
+	PublishedAt          string        `json:"published_at"`
+	CreatedAt            string        `json:"created_at"`
+	NegotiationsURL      interface{}   `json:"negotiations_url"`
+	SuitableResumesURL   interface{}   `json:"suitable_resumes_url"`
+	ApplyAlternateURL    string        `json:"apply_alternate_url"`
+	HasTest              bool          `json:"has_test"`
+	Test                 interface{}   `json:"test"`
+	AlternateURL         string        `json:"alternate_url"`
+	WorkingDays          []interface{} `json:"working_days"`
+	WorkingTimeIntervals []interface{} `json:"working_time_intervals"`
+	WorkingTimeModes     []interface{} `json:"working_time_modes"`
+	AcceptTemporary      bool          `json:"accept_temporary"`
+	Languages            []interface{} `json:"languages"`
 }
 
-type vacancies []vacancie
+type vacancie struct {
+	URL          string `json:"strUrl"`
+	Name         string `json:"strJobTitle"`
+	AreaName     string `json:"strArea"`
+	EmployerName string `json:"strCompany"`
+	Description  string `json:"strBodyFull"`
+	KeySkills    []struct {
+		Name string `json:"name"`
+	} `json:"strArrKeySkills"`
+}
 
 func hh(res http.ResponseWriter, req *http.Request) {
 	fmt.Fprint(res, "Hello from Go")
@@ -259,14 +353,14 @@ func hh2(res http.ResponseWriter, req *http.Request) {
 	//We make HTTP request using the Get function
 	resp, err := http.Get(URL)
 	if err != nil {
-		log.Fatal("ooopsss an error occurred, please try again")
+		log.Fatal("Sorry, an error occurred, please try again")
 	}
 	defer resp.Body.Close()
 	//Create a variable of the same type as our model
 	var cResp hhresponse
 	//Decode the data
 	if err := json.NewDecoder(resp.Body).Decode(&cResp); err != nil {
-		log.Fatal("ooopsss! an error occurred, please try again")
+		log.Fatal("Sorry, an error occurred, please try again")
 	}
 	fmt.Fprint(res, cResp.Found)
 }
@@ -279,7 +373,7 @@ func hh3(res http.ResponseWriter, req *http.Request) {
 	//We make HTTP request using the Get function
 	resp, err := http.Get(URL)
 	if err != nil {
-		log.Fatal("ooopsss an error occurred, please try again")
+		log.Fatal("Sorry, an error occurred, please try again")
 	}
 	defer resp.Body.Close()
 	fmt.Println(2)
@@ -288,7 +382,7 @@ func hh3(res http.ResponseWriter, req *http.Request) {
 	var cResp_full hhresponse_full
 	//Decode the data
 	if err := json.NewDecoder(resp.Body).Decode(&cResp_full); err != nil {
-		log.Fatal("ooopsss! an error occurred, please try again")
+		log.Fatal("Sorry, an error occurred, please try again")
 	}
 
 	fmt.Println(3)
@@ -332,20 +426,25 @@ func getPageOfVacancies(ivPerPage int, ivPageNumber int, ivText string, ivArea s
 	//We make HTTP request using the Get function
 	resp, err := http.Get(URL)
 	if err != nil {
-		log.Fatal("ooopsss an error occurred, please try again")
+		log.Fatal("Sorry, an error occurred, please try again")
 	}
 
 	//Create a variable of the same type as our model
 	var lsPage pages
 	//Decode the data
 	if err := json.NewDecoder(resp.Body).Decode(&lsPage); err != nil {
-		log.Fatal("ooopsss! an error occurred, please try again")
+		log.Fatal("Sorry, an error occurred, please try again")
 	}
 
 	for _, value := range lsPage.Items {
 		var lsVac = vacancie{}
 		lsVac.Name = value.Name
 		lsVac.URL = value.URL
+		lsVacDetailed := getVacancie(lsVac.URL)
+		lsVac.Description = lsVacDetailed.Description
+		lsVac.KeySkills = lsVacDetailed.KeySkills
+		lsVac.AreaName = lsVacDetailed.Area.Name
+		lsVac.EmployerName = lsVacDetailed.Employer.Name
 		*ctReturnedVac = append(*ctReturnedVac, lsVac)
 	}
 
@@ -353,17 +452,34 @@ func getPageOfVacancies(ivPerPage int, ivPageNumber int, ivText string, ivArea s
 	return lsPage.Pages
 }
 
+func getVacancie(ivURL string) hhVac {
+	//We make HTTP request using the Get function
+	resp, err := http.Get(ivURL)
+	if err != nil {
+		log.Fatal("Sorry, an error occurred, please try again")
+	}
+
+	//Create a variable of the same type as our model
+	var lsVac hhVac
+	//Decode the data
+	if err := json.NewDecoder(resp.Body).Decode(&lsVac); err != nil {
+		log.Fatal("Sorry, an error occurred, please try again")
+	}
+	return lsVac
+
+}
+
 func getHhAreas() {
 	//Build The URL string
 	URL := "https://api.hh.ru/areas"
 	resp, err := http.Get(URL)
 	if err != nil {
-		log.Fatal("ooopsss an error occurred, please try again")
+		log.Fatal("Sorry, an error occurred, please try again")
 	}
 	defer resp.Body.Close()
 	//Decode the data
 	if err := json.NewDecoder(resp.Body).Decode(&gDictHhareas); err != nil {
-		log.Fatal("ooopsss! an error occurred, please try again")
+		log.Fatal("Sorry, an error occurred, please try again")
 	}
 }
 
@@ -390,9 +506,10 @@ func main() {
 	getHhAreas()
 
 	http.HandleFunc("/", hh)
-	http.HandleFunc("/hh", hh1)
-	http.HandleFunc("/hh2", hh2)
-	http.HandleFunc("/hh3", hh3)
+	//http.HandleFunc("/hh", hh1)
+	//http.HandleFunc("/hh2", hh2)
+	//http.HandleFunc("/hh3", hh3)
 	http.HandleFunc("/hh4", hh4)
-	http.ListenAndServe("localhost:8080", nil)
+	//http.ListenAndServe("localhost:8080", nil) //locally
+	http.ListenAndServe(":8080", nil) //SAP BTP CloudFounry
 }

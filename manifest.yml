@@ -1,0 +1,5 @@
+---
+applications:
+- name: go-web-hh-vac
+  env:
+    GOVERSION: go1.7   
