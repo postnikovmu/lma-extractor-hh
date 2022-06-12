@@ -412,7 +412,10 @@ func hh4(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 	j, _ := json.Marshal(ltReturnedVac)
-	fmt.Fprint(res, string(j))
+	res.Header().Set("Content-Type", "application/json")
+	//res.WriteHeader(http.StatusCreated)
+	res.Write(j)
+	//fmt.Fprint(res, string(j))
 }
 
 func getPageOfVacancies(ivPerPage int, ivPageNumber int, ivText string, ivArea string, ctReturnedVac *[]vacancie) int {
@@ -448,7 +451,7 @@ func getPageOfVacancies(ivPerPage int, ivPageNumber int, ivText string, ivArea s
 		*ctReturnedVac = append(*ctReturnedVac, lsVac)
 	}
 
-	fmt.Println(lsPage.Pages, lvPageNumberStr, lvPerPage)
+	//fmt.Println(lsPage.Pages, lvPageNumberStr, lvPerPage)
 	return lsPage.Pages
 }
 
