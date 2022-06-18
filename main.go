@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -411,7 +412,9 @@ func hh4(res http.ResponseWriter, req *http.Request) {
 			break
 		}
 	}
-	j, _ := json.Marshal(ltReturnedVac)
+	//j, _ := json.Marshal(ltReturnedVac)
+	j, _ := JSONMarshal(ltReturnedVac, true)
+
 	res.Header().Set("Content-Type", "application/json")
 	//res.WriteHeader(http.StatusCreated)
 	res.Write(j)
@@ -502,6 +505,17 @@ func findNode(n Areas2, s string) string {
 
 	}
 	return ""
+}
+
+func JSONMarshal(v interface{}, safeEncoding bool) ([]byte, error) {
+	b, err := json.Marshal(v)
+
+	if safeEncoding {
+		b = bytes.Replace(b, []byte("\\u003c"), []byte("<"), -1)
+		b = bytes.Replace(b, []byte("\\u003e"), []byte(">"), -1)
+		b = bytes.Replace(b, []byte("\\u0026"), []byte("&"), -1)
+	}
+	return b, err
 }
 
 func main() {
