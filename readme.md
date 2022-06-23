@@ -1,5 +1,6 @@
 # go-web-hh-vac
-Go microservice for getting data from API hh.ru
+Examples from my learning path
+
 ## General Info
 ***
 This is a microservice, which can be used to grab information
