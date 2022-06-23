@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 )
 
 type hhresponse struct {
@@ -394,6 +393,7 @@ func hh3(res http.ResponseWriter, req *http.Request) {
 
 func hh4(res http.ResponseWriter, req *http.Request) {
 	//reqUrlQuery := strings.Split(req.URL.RawQuery, "&")
+	req.Header.Add("Accept-Charset", "utf-8")
 	reqUrlQuery, _ := url.ParseQuery(req.URL.RawQuery)
 
 	var lvText = reqUrlQuery["text"][0]          //variable with the text of search
@@ -425,7 +425,8 @@ func getPageOfVacancies(ivPerPage int, ivPageNumber int, ivText string, ivArea s
 	lvPageNumberStr := strconv.Itoa(ivPageNumber)
 	lvPerPage := strconv.Itoa(ivPerPage)
 
-	lvText20 := strings.Join(strings.Split(ivText, " "), "%20")
+	//lvText20 := strings.Join(strings.Split(ivText, " "), "%20")
+	lvText20 := url.QueryEscape(ivText)
 	//Build The URL string
 	URL := "https://api.hh.ru/vacancies?" + "text=" + lvText20 + "&" + "area=" + ivArea + "&" + "per_page=" + lvPerPage + "&" + "page=" + lvPageNumberStr
 
@@ -527,6 +528,6 @@ func main() {
 	//http.HandleFunc("/hh2", hh2)
 	//http.HandleFunc("/hh3", hh3)
 	http.HandleFunc("/hh4", hh4)
-	//http.ListenAndServe("localhost:8080", nil) //locally
-	http.ListenAndServe(":8080", nil) //SAP BTP CloudFounry
+	http.ListenAndServe("localhost:8080", nil) //locally
+	//http.ListenAndServe(":8080", nil) //SAP BTP CloudFounry
 }
