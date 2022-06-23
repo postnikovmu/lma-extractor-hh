@@ -1,4 +1,4 @@
-# Project name
+# go-web-hh-vac
 ***
 Go microservice for getting data from API hh.ru
 ## General Info
