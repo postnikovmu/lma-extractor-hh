@@ -1,5 +1,5 @@
 # go-web-hh-vac
-Examples from my learning path
+Go microservice for getting data from API hh.ru
 
 ## General Info
 ***
