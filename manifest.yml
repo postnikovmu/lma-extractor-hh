@@ -2,4 +2,4 @@
 applications:
 - name: go-web-hh-vac
   env:
-    GOVERSION: go1.7   
+    GOVERSION: go1.17   
