@@ -1,4 +1,4 @@
-# go-web-hh-vac
+# lma-extractor-hh
 Go microservice for getting data from API hh.ru
 
 ## General Info
