@@ -228,7 +228,7 @@ func hh(res http.ResponseWriter, req *http.Request) {
 }
 
 func hh4(res http.ResponseWriter, req *http.Request) {
-	//reqUrlQuery := strings.Split(req.URL.RawQuery, "&")
+
 	req.Header.Add("Accept-Charset", "utf-8")
 	reqUrlQuery, _ := url.ParseQuery(req.URL.RawQuery)
 
@@ -237,7 +237,6 @@ func hh4(res http.ResponseWriter, req *http.Request) {
 	lvArea := findNode(gDictHhareas, lvAreaText) //variable with the area ID from api
 
 	var ltReturnedVac []vacancie
-	//ltReturnedVac = make([]vacancie, 0)
 
 	const lcPerPage = 100
 	lvPageNumber := 0
@@ -248,20 +247,17 @@ func hh4(res http.ResponseWriter, req *http.Request) {
 			break
 		}
 	}
-	//j, _ := json.Marshal(ltReturnedVac)
 	j, _ := JSONMarshal(ltReturnedVac, true)
 
 	res.Header().Set("Content-Type", "application/json")
-	//res.WriteHeader(http.StatusCreated)
 	res.Write(j)
-	//fmt.Fprint(res, string(j))
+
 }
 
 func getPageOfVacancies(ivPerPage int, ivPageNumber int, ivText string, ivArea string, ctReturnedVac *[]vacancie) int {
 	lvPageNumberStr := strconv.Itoa(ivPageNumber)
 	lvPerPage := strconv.Itoa(ivPerPage)
 
-	//lvText20 := strings.Join(strings.Split(ivText, " "), "%20")
 	lvText20 := url.QueryEscape(ivText)
 	//Build The URL string
 	URL := "https://api.hh.ru/vacancies?" + "text=" + lvText20 + "&" + "area=" + ivArea + "&" + "per_page=" + lvPerPage + "&" + "page=" + lvPageNumberStr
@@ -291,7 +287,6 @@ func getPageOfVacancies(ivPerPage int, ivPageNumber int, ivText string, ivArea s
 		*ctReturnedVac = append(*ctReturnedVac, lsVac)
 	}
 
-	//fmt.Println(lsPage.Pages, lvPageNumberStr, lvPerPage)
 	return lsPage.Pages
 }
 
