@@ -22,7 +22,7 @@ Responce is the data in JSON format.
 There are no prerequisites.
 
 ### Deploy:
-Deploy is on SAP BTP CloudFoundry platform: the settings are in manifest.yml. (or another CloudFoundry)
+Deploy is to SAP BTP platform CloudFoundry: the settings are in manifest.yml. (or another CloudFoundry)
 ## Technologies
 
 Go (Golang)
